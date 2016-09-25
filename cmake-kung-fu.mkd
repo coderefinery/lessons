@@ -813,7 +813,7 @@ template: inverse
 ## Including external sources and libraries
 
 - Great for interfacing projects
-- External sources/libraries can be tracked with [Git submodules](http://bast.fr/talks/git/submodules/)
+- External sources/libraries can be tracked with [Git submodules](http://cicero.xyz/v2/remark/github/coderefinery/lessons/master/git-submodules.mkd/)
 - With `ExternalProject_Add` we can:
     - Download/checkout external sources/library
     - Update/patch them
@@ -857,7 +857,7 @@ ExternalProject_Add(
 
 ## Including external sources and libraries
 
-- External sources/libraries can be tracked with [Git submodules](http://bast.fr/talks/git/submodules/)
+- External sources/libraries can be tracked with [Git submodules](http://cicero.xyz/v2/remark/github/coderefinery/lessons/master/git-submodules.mkd/)
 
 ```cmake
 add_custom_target(
