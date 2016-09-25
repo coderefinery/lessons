@@ -1,0 +1,8 @@
+
+     [master,HEAD]
+      |
+c1----c2            [_master,_HEAD]
+        \            |
+         c3----c4----c5
+                     |
+                    [feature]

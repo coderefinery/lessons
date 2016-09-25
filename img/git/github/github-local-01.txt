@@ -1,0 +1,3 @@
+     [master,origin/master]
+      |
+c1----c2

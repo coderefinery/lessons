@@ -1,0 +1,49 @@
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Introduction and overview
+
+## Radovan Bast
+
+---
+
+layout: false
+
+## Motivation
+
+"Software is a cornerstone of science. Without software, twenty-first century
+science would be impossible. Without better software, science cannot progress."
+[http://sciencecodemanifesto.org]
+
+- Tools for better scientific software
+- Managing complexity
+- Good programming practices come from experience
+- Experience comes from bad programming practices
+
+---
+
+## Teachers
+
+- Rossen Apostolov (PDC/KTH)
+- Radovan Bast (Department of IT, UiT The Arctic University of Norway)
+- Jonas Juselius (Serit IT Partner Tromso)
+- Erik Kaellman (Uppsala universitet)
+- Michael Schliephake (PDC/KTH)
+
+---
+
+## Practical information (memory help)
+
+- Access cards
+- Network
+- Food and microwaves
+- Coffee/tea/cake
+- SeSE format
+- Exercises and software
+- Project work
+- Website
+- Program
+- Slides

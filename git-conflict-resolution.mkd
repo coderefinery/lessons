@@ -1,0 +1,348 @@
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Conflict resolution in Git
+
+## Radovan Bast
+
+Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code examples: [OSI](http://opensource.org)-approved [MIT license](http://opensource.org/licenses/mit-license.html).
+
+---
+
+layout: false
+
+## Conflict resolution
+
+![](img/git/confict-resolution/mk1.jpg)
+
+- In most cases a `git merge` runs smooth and automatic
+- Then a merge commit appears (unless fast-forward) without you even noticing
+- Git is very good at resolving modifications when merging branches
+- You can merge more than one branch (octopus merges)
+- But sometimes the same line is modified on two branches and Git issues a conflict
+- Then you need to tell Git which version to keep
+- There are several ways to do that as we will see
+
+---
+
+## Conflict resolution
+
+- We will work with a primitive example: the same file on two branches
+
+```shell
+billy jean is not my lover
+he is just a boy who
+says that i am the one
+but the kid is not my daughter
+```
+
+- As you can hopefully see the lyrics is not quite right
+
+---
+
+## Conflict resolution
+
+```shell
+billy jean is not my lover
+he is just a boy who
+says that i am the one
+but the kid is not my daughter
+```
+
+- Alice works on branch `alice` and corrects some errors
+
+```shell
+billy jean is not my lover
+*she is just a girl who         # modified by Alice
+says that i am the one
+*but the kid is not my son      # modified by Alice
+```
+
+- Bob works on branch `bob` and corrects some errors
+
+```shell
+billy jean is not my lover
+*he is just a girl who          # modified by Bob
+says that i am the one
+but the kid is not my daughter
+```
+
+---
+
+## Conflict resolution
+
+- Bob decides to merge branch `alice`
+
+```shell
+$ git merge alice
+```
+
+- What will happen?
+
+---
+
+## Conflict resolution
+
+- Bob decides to merge branch `alice`
+
+```shell
+$ git merge alice
+
+Auto-merging lyrics
+CONFLICT (content): Merge conflict in lyrics
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+- Without conflict Git would have automatically created a merge commit,
+  but since there is a conflict, Git did not commit
+
+```shell
+$ git status
+
+# On branch bob
+# You have unmerged paths.
+#   (fix conflicts and run "git commit")
+#
+# Unmerged paths:
+#   (use "git add <file>..." to mark resolution)
+#
+#       both modified:      lyrics
+```
+
+---
+
+## Conflict resolution
+
+- Let us inspect file `lyrics`
+
+```shell
+billy jean is not my lover
+*<<<<<<< HEAD
+*he is just a girl who
+*=======
+*she is just a girl who
+*>>>>>>> alice
+says that i am the one
+but the kid is not my son
+```
+
+- Git inserted resolution markers (the `<<<<<<<`, `>>>>>>>`, and `=======`)
+- Try also `git diff`
+- `git diff` now only shows the conflicting part, nothing else
+- We have to mark resolution for file `lyrics`
+- We will discuss 3 different ways to do this
+
+---
+
+## Manual resolution
+
+```shell
+<<<<<<< HEAD
+he is just a girl who
+=======
+she is just a girl who
+>>>>>>> alice
+```
+
+- Manual resolution means that you have to edit the code/text between the resolution markers
+- Git stages all files without conflicts and leaves the files with conflicts unstaged
+- Decide what you keep (the one, the other, or both or something else)
+- Then remove the resolution markers
+- Tell Git that you have resolved the conflict with `git add lyrics`
+
+---
+
+## Manual resolution
+
+- Then verify with `git status`
+
+```shell
+# On branch bob
+# All conflicts fixed but you are still merging.
+#   (use "git commit" to conclude merge)
+#
+# Changes to be committed:
+#
+#       modified:   lyrics
+```
+
+- Now commit the merge; this opens up a prepared commit message that you can keep or modify
+- It is good practice to keep the information that there was a conflict in the commit message
+
+---
+
+## Resolution using mergetool
+
+```shell
+$ git mergetool lyrics
+```
+
+![](img/git/confict-resolution/mergetool.png)
+
+- Your current branch is left, the branch you merge is right, result is in the middle
+- After you are done, close and commit, `git add` is not needed when using `git mergetool`
+
+---
+
+## Using "ours" or "theirs" strategy
+
+![](img/git/confict-resolution/mk2.jpg)
+
+- Sometimes you know that you want to keep "our" version (version on this branch)
+  or "theirs" (version on the merged branch)
+- Then you do not have to resolve conflicts manually
+
+```shell
+$ git checkout --theirs lyrics # keep theirs (alice)
+                               # alternative would be --ours (bob)
+$ git add lyrics               # tell Git that you have resolved it
+$ git commit
+```
+
+---
+
+## Aborting a conflicting merge
+
+- Imagine it is Friday evening, you try to merge but have conflicts all over the place
+- You do not feel like resolving it now and want to undo the half-finished merge
+- Or it is a conflict that you cannot resolve and only your colleague knows which version is the one to keep
+- What to do?
+
+---
+
+## Aborting a conflicting merge
+
+- Imagine it is Friday evening, you try to merge but have conflicts all over the place
+- You do not feel like resolving it now and want to undo the half-finished merge
+- Or it is a conflict that you cannot resolve and only your colleague knows which version is the one to keep
+- There is no reason to delete the whole repository
+- Simply reset the repository to `HEAD` (last committed state)
+
+```shell
+$ git reset --hard HEAD # throws away everything that is not in HEAD
+```
+
+- The repository looks exactly as it was before the merge
+
+---
+
+## Avoiding conflicts
+
+- Conflicts can be avoided if you think and talk with your colleagues before committing
+- Think and plan to which branch you will commit to
+- Fortran people: modifying common blocks often causes conflicts
+- Modifying global data often causes conflicts
+- Monolithic entangled spaghetti-code maximizes risk of conflicts
+- Modular programing minimizes risk of conflicts
+- Ball-of-mud branches for "everything" maximize risk of conflicts
+- One branch for one task only
+- Resolve conflicts early
+- If the branch affects code that is likely to be modified by others, the branch should be short-lived and/or merge often to the main development line
+- If the branch affects code that is likely to be modified by others, the branch should merge the main development line often to stay up-to-date
+
+---
+
+## Develop separate features on separate branches
+
+- You create a branch for your new feature that you are working on
+- While working on your feature you discover a defect or bug that has nothing to do
+  with your new feature
+- Or you see some ugly code and want to clean it up
+- You are a responsible developer and you do not want to leave this defect
+- You decide to fix this defect right on your new branch "while at it"
+- This is a **bad idea** - why?
+
+![](img/git/confict-resolution/git-fix-1.svg)
+
+---
+
+## Develop separate features on separate branches
+
+- Reasoning
+    - If you fix it on your branch other people will not see it
+    - You may want to merge it to `master` but you cannot since your new feature is not ready yet
+    - Perhaps somebody else will fix it on master in a different way and then it will conflict
+      with your new feature
+    - Before you commit a change, think: "who needs this change?"
+    - Based on the answer select the appropriate branch
+    - Develop separate features on separate branches and be very strict and disciplined with this
+
+---
+
+## Develop separate features on separate branches
+
+- Better solution
+    - Fix it on `master`, so other developers can see it
+    - Than merge it to your development/topic branch
+
+![](img/git/confict-resolution/git-fix-2.svg)
+
+---
+
+## Develop separate features on separate branches
+
+- Developing separate features on separate branches minimizes conflicts
+- It makes branches shorter-lived
+- This again minimizes conflicts
+- OK I made a commit to the "wrong" branch
+- And it is a public branch, what now?
+- `git cherry-pick` the commit to the "right" branch
+
+![](img/git/confict-resolution/git-fix-3.svg)
+
+---
+
+## Develop separate features on separate branches
+
+![](img/git/confict-resolution/git-split-branch-1.svg)
+
+- You made few commits to the `master` branch
+- You then realize that it broke some tests but you have no time now to fix them
+- So you wish you had committed them to an experimental branch instead
+- You want to move last three commits to a separate branch
+
+---
+
+## Develop separate features on separate branches
+
+![](img/git/confict-resolution/git-split-branch-2.svg)
+
+- First make sure that your working directory and index are empty
+- Then create a new branch (e.g. `feature`)
+
+---
+
+## Develop separate features on separate branches
+
+![](img/git/confict-resolution/git-split-branch-3.svg)
+
+- Now just reset `master` back three commits
+
+```shell
+$ git checkout master
+$ git branch feature  # create feature branch but stay on master
+$ git reset --hard c2 # on master
+```
+
+- Another job well done
+- However this should not be done if the commits have already been shared with others
+
+---
+
+## When is a good moment to merge?
+
+- Feature branch merges to `master` typically once (at the end of its lifetime)
+- But there may be good reasons for merging branch to `master` more often (release branch)
+- Never merge a feature branch into another feature branch (branch pollution; discuss why)
+
+- For modular projects with write-protected `master` and code review and very high discipline
+    - You typically should not merge `master` except the occasional `git cherry-pick`
+
+- For entangled projects where most of the development happens directly on `master`
+    - It is good to merge `master` to your topic branch often to stay in sync with main development line
+    - Merge `master` to your branch ideally should never conflict
+    - But it will sometimes, resolve conflicts early

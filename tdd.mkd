@@ -1,0 +1,349 @@
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Test-driven development
+
+## Radovan Bast
+
+Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code examples: [OSI](http://opensource.org)-approved [MIT license](http://opensource.org/licenses/mit-license.html).
+
+---
+
+layout: false
+
+## Tests are no guarantee
+
+<img src="img/unit-testing.jpg" style="width: 500px;"/>
+
+- https://twitter.com/dave1010/status/613601365529657344
+
+---
+
+## Motivation 1: code quality
+
+- More robust code
+- As projects grow, it becomes easier to break things without noticing immediately
+- In particular for non-modular entangled projects (effects at distance)
+- Testing helps detecting errors early:
+  programming without constantly testing your changes will introduce errors
+  and it is extremely time consuming to detect and fix them
+- Interpreted dynamically typed imperative languages need to be tested
+- So do compiled languages but the compiler catches at least some errors
+- We publish scientific papers based on scientific code
+
+---
+
+## Motivation 2: distributing code
+
+- Users and computing center personnel may not be able to identify incorrect
+  installation without automated testing
+- Users of your code publish papers based on results produced by your code
+
+---
+
+## Motivation 3: developers
+
+- Satisfying instant visual feedback
+- Avoid coding constipation
+- Avoid "gold-plating" the code
+
+---
+
+## Motivation 4: external contributors
+
+- Easier for external developers to contribute to the project
+- Tests can be good documentation; up to date by definition
+
+---
+
+## Motivation 5: managing complexity
+
+- Help to modularize/encapsulate
+- Unit tests sharpen and document interfaces
+- Enable reuse and migration
+- Faster coding: allows to make big changes quickly; refactoring
+- You start with design; often leads to better design
+- Well structured code is easy to test
+
+---
+
+template: inverse
+
+## Imperfect tests run frequently are better than perfect tests which are never written
+
+---
+
+## Important
+
+- Test frequently (each commit)
+- Test automatically (Travis CI)
+- Test with numerical tolerance
+- Think about code coverage (https://coveralls.io)
+- Write test, red, green, refactor
+
+---
+
+## Unit tests
+
+- Test one unit: module or even single function
+- Sharpen interfaces
+- Speed up testing
+- Good documentation of the capability and dependencies of a module
+- In fact it is a documentation that is up to date by definition
+
+---
+
+## Test-driven development
+
+- Write tests before writing code
+- Very often we know the result that a function is supposed to produce
+- Development cycle:
+    - Write the test
+    - Write an empty function template
+    - Test that the test fails
+    - Program until the test passes
+    - Perhaps refactor
+    - Move on
+
+---
+
+## Functionality regression tests
+
+- Like in a car assembly we have to test all components and also whether the components work together
+- Typically tests entire code for a set of input examples and compares them with reference outputs
+- Hopefully with numerical tolerance
+- Typically we need both unit and functionality regression tests
+- Both are no guarantee that the code is correct "always"
+
+---
+
+## Performance regression tests
+
+- Real example
+    - In one code module somebody forgot and committed debug code
+    - This did not break functionality
+    - It slowed down that part of the code by factor 2
+    - Nobody noticed for one year because we had no automatic detection of performance degradation
+
+- Good idea
+    - Create benchmark calculations to cover various performance-critical modules
+    - Run these benchmarks regularly (weekly?)
+    - Monitor the timing
+    - If timing changes significantly, alarm bells should be ringing
+
+---
+
+## Code coverage
+
+- If I break the code and all tests pass who is to blame?
+- A code that is not tested will break sooner or later
+- Code coverage measures and documents which lines of code have been traversed during a test run
+- It is possible to have line-by-line coverage (example later)
+- In all the files that have zero coverage you can multiply all numbers with 10E5 and all tests
+  will happily pass
+
+---
+
+## Total time to test matters
+
+- You should require developers to run the test set before each `git push`
+- Professional projects require running the test set before each commit
+- In extreme cases after each save
+- With a `pre-commit` hook you can make sure that commits that break tests are rejected
+- Total time to test matters
+- If the test set takes 7 hours to run, it is likely that nobody will run it
+- Identify fast essential test set that has sufficient coverage and is sufficiently
+  short to be run before each commit or push
+
+---
+
+## Continuous integration
+
+- Test each commit on every branch
+- Makes it possible for the mainline maintainer to see whether a modification
+  breaks functionality before accepting the merge
+
+---
+
+## Good practices (1/2)
+
+- Test before committing (use the Git staging area)
+- Fix broken tests immediately (dirty dishes effect)
+- Do not deactivate tests "temporarily"
+- Think about coverage (physics and lines of code)
+- Go public with your testing dashboard and issues/tickets
+- Dogfooding: use the code/scripts that you ship
+
+---
+
+## Good practices (2/2)
+
+- Think about input sanitization (green testing dashboard does not prevent me from making unexpected keyword combinations)
+- Test controlled errors: if something is expected to fail, test for that
+- Make testing easy to run (`make test`)
+- Make testing easy to analyze
+    - Do not flood screen with pages of output in case everything runs OK
+    - Test with numerical tolerance (extremely annoying to compare digits by eye)
+
+---
+
+## Unit test frameworks
+
+- Python
+    - py.test
+    - nose
+    - doctest
+    - unittest
+
+- C(++)
+    - Google Test
+    - CppUnit
+    - Boost.Test
+    - UnitTest++
+    - https://github.com/philsquared/Catch
+
+- Fortran
+    - pFUnit
+    - Fruit
+
+---
+
+## py.test
+
+- Very easy to set up
+
+```shell
+$ pip install pytest  # ideally into a virtualenv
+```
+
+- Very easy to use
+
+```python
+def get_word_lengths(s):
+    """
+    Returns a list of integers representing
+    the word lengths in string s.
+    """
+    return [len(w) for w in s.split()]
+
+def test_get_word_lengths():
+    text = "Three tomatoes are walking down the street"
+    assert get_word_lengths(text) == [5, 8, 3, 7, 4, 3, 6]
+```
+
+- Example output: https://travis-ci.org/bast/pytest-demo/builds/104182942
+- Example project: https://github.com/bast/pytest-demo
+
+---
+
+## Google Test
+
+- Widely used
+- Very rich in functionality
+- Source: https://github.com/google/googletest
+
+```cpp
+#include "gtest/gtest.h"
+#include "example.h"
+
+TEST(example, add)
+{
+    double res;
+    res = add_numbers(1.0, 2.0);
+    ASSERT_NEAR(res, 3.0, 1.0e-11);
+}
+```
+
+- Example output: https://travis-ci.org/bast/gtest-demo/builds/104190982
+- Example project: https://github.com/bast/gtest-demo
+
+---
+
+## pFUnit
+
+- Very rich in functionality
+- Source: http://pfunit.sourceforge.net
+- Requires modern Fortran compilers (uses F2003 standard)
+
+```fortran
+@test
+subroutine test_add_numbers()
+
+   use hello
+   use pfunit_mod
+
+   implicit none
+
+   real(8) :: res
+
+   call add_numbers(1.0d0, 2.0d0, res)
+   @assertEqual(res, 3.0d0)
+
+end subroutine
+```
+
+- Example output: https://travis-ci.org/bast/pfunit-demo/builds/104193675
+- Example project: https://github.com/bast/pfunit-demo
+
+---
+
+## CTest and CDash
+
+- CTest runs a set of tests through bash/perl/python scripts and reports to CDash which aggregates results
+- The test scripts can be anything you like
+
+```shell
+add_test(my_test_name ${PROJECT_BINARY_DIR}/my_test_script --flags)
+
+include(CTest)
+enable_testing()
+```
+
+- CTest looks for the return codes: 0/non-0 (success/failure)
+- CTest is a powerful test runner, no need to implement one
+- Reporting to CDash is easy
+
+```shell
+$ make Nightly
+```
+
+- CDash example: https://testboard.org
+
+---
+
+## Fun: Jenkins Chuck Norris plugin
+
+https://wiki.jenkins-ci.org/display/JENKINS/ChuckNorris+Plugin
+
+<img src="img/chucknorris_badass.jpg" style="width: 350px;"/>
+<img src="img/chucknorris_thumbup.jpg" style="width: 350px;"/>
+
+---
+
+## Fun: Jenkins "Extreme Feedback" Contraption
+
+https://github.com/codedance/Retaliation
+
+"Retaliation is a Jenkins CI build monitor that automatically coordinates a foam missile counter-attack against the developer who breaks the build. It does
+this by playing a pre-programmed control sequence to a USB Foam Missile Launcher to target the offending code monkey."
+
+<img src="img/launcher.jpg" style="width: 400px;"/>
+
+---
+
+## Travis and Coveralls
+
+- GitHub plus Travis plus Coveralls is a killer combination - use it!
+- Free for public repositories
+
+### Travis CI
+
+- https://travis-ci.org
+
+### Coveralls: code coverage history and stats
+
+- https://coveralls.io

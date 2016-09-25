@@ -1,0 +1,315 @@
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Profiling and code optimization
+
+## Radovan Bast
+
+Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code examples: [OSI](http://opensource.org)-approved [MIT license](http://opensource.org/licenses/mit-license.html).
+
+---
+
+layout: false
+
+## When do we want to optimize the code?
+
+- Code is too slow
+- Memory demand is too high
+
+---
+
+## When do we want to optimize the code?
+
+- Code is too slow
+- Memory demand is too high
+
+### Things we can do about it
+
+- Buy faster computer
+- Buy more memory
+- Help the compiler
+- Change algorithm
+- Change data structures (optimize data access)
+- Port to a "faster language"
+- Parallelize
+- Port to another platform (GPU, accelerators)
+
+---
+
+## Profile first, optimize later
+
+- Before you invest money or time, identify the problem
+- Here insert famous Donald Knuth quote
+- Before solving the problem, verify whether it is worth it
+
+---
+
+## Profiling
+
+<img src="img/profile.png" style="width: 200px;"/>
+
+- Benchmark and profile before optimizing
+
+---
+
+## Profiling
+
+<img src="img/profile.png" style="width: 200px;"/>
+
+- Where does the program spend most time?
+- Dynamic program analysis (runtime)
+- Statistical sampling or event-based
+- Profiling perturbs the calculation
+- Profiled calculation should be representable
+
+---
+
+## Profilers
+
+## Statistical (sampling)
+
+- Collect data at regular intervals
+- Typically small overhead
+- Not all code is seen
+- May differ between execution
+- Show bottlenecks in production code
+- Can be used for monitoring over long execution runs
+- Reports on external library functions
+
+## Event-based (tracing)
+
+- Collect data (traces) for pre-defined events
+  (entering or leaving functions, object allocation, communication, disk I/O)
+- Modify the code
+- Often large overhead
+- Selective
+
+---
+
+## Profilers
+
+- "Home use", free
+    - Gprof
+    - Callgrind (Valgrind)
+    - Python: cProfile, profile
+    - OProfile
+
+- HPC, free
+    - HPCToolkit
+    - DynInst
+    - Extrae/Paraver
+    - Scalasca
+    - TAU
+
+- Commercial
+    - Vampir
+    - Allinea Performance Reports
+    - Allinea MAP
+    - CrayPat
+    - VTune Amplifier (Intel)
+
+---
+
+template: inverse
+
+## How would you profile stranded on an island?
+
+---
+
+## How would you profile stranded on an island?
+
+- Insert timers!
+- Everybody can do that
+- In any language
+- It is good to have timings anyhow in the output
+
+---
+
+## Before solving the problem, verify whether it is worth it
+
+- Human time often more valuable than CPU time
+- We often spend more time reading and writing code than running it
+- Compare your programming time multiplied with your salary to the cost of CPU
+  time that you will save
+- Is a 20% faster code worth 2 months of work?
+- Does it really matter whether the run takes 1 minute or 2 minutes
+- It probably matters if the computation takes 3 months
+- If your code is used by 5000 users then 20\% speedup may be worth it
+
+---
+
+## Performance vs. code obfuscation
+
+- When you optimize for speed/memory, typically you increase complexity
+- Imagine your code runs 40% faster but nobody understands it
+- If you have to complicate the code, keep the complexity localized
+- Define your priorities
+- Performance is typically not portable
+
+---
+
+## Complexity complexity complexity
+
+- We do not know the languages of tomorrow
+- We do not know the hardware of tomorrow
+- Code complexity may prevent us from porting our codes to soft- and hardware of tomorrow
+- Keep it simple as long as you can
+
+---
+
+## Buy faster computer
+
+- Moore's law
+- Frequency race
+- "The party isn't exactly over, but the police has arrived, and the music has been turned way down" (P. Kogge)
+- Today we need to think about parallelization
+
+---
+
+## Buy more memory
+
+- Number of cores/threads scales faster than memory
+- Today we need to think about parallelization
+- Linear scaling requires localization of memory access
+- Use tools to identify memory bottlenecks
+
+---
+
+## Help the compiler
+
+- Restrict types (Cython)
+- Use pragmas
+- Tell the compiler where the bottlenecks are
+- Tell the compiler where vectorization is possible
+- Compiler flags
+- Instruction set
+
+---
+
+## Change algorithm
+
+- Consider increase in complexity
+- Pre-factor vs. scaling
+- "Slow" algorithm may catch the worm
+- Easy algorithm first
+- YAGNI
+
+---
+
+## Change data structures (optimize data access)
+
+- Latency: https://gist.github.com/jboner/2841832
+- Cache hierarchy
+- Cache line
+- Gorilla
+- MPI and scaling (disk access serializing)
+- Swapping
+
+---
+
+## Refactoring
+
+- Natural process
+- "In the long run every program becomes rococo - then rubble."
+- http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html
+- Needs tests
+
+---
+
+## Recomputing vs. remembering
+
+- Sometimes recompute faster than reading from disk
+- Memoization
+
+---
+
+## Port to a "faster language"
+
+- Every language allows to write slow code
+- Pre-factor vs. scaling
+- "Slow" language may catch the worm
+- Combine languages (FFI)
+- Functional programming vs. OOP
+
+---
+
+## Prototype first with "easy" language
+
+- Matlab
+- Python
+- Julia
+
+---
+
+## Parallelize
+
+- Amdahl's law
+
+<img src="img/amdahl.png" style="width: 500px;"/>
+
+- Serial and parallel part scale differently w.r.t. system size
+
+---
+
+## Typical problems with calculations that do not scale
+
+- Parallel region too small
+- Serialization of parallel tasks
+- I/O heavy code
+- Communication overhead
+- Work load imbalance
+- Resource imbalance
+- Memory-bound code
+- Sub-optimal use of libraries
+- System size too small
+- Wrong code
+
+---
+
+## Port to another platform (GPU, accelerators)
+
+- Moving target
+- Trend goes towards multi-processor and multi-thread
+- If you rewrite your data structures for GPU/accelerators, the effort
+  is most probably not wasted
+
+### Before porting
+
+- Restructure mathematical formulation
+- Innovate at algorithm level
+- Then maybe port
+
+---
+
+## Do not reinvent the wheel
+
+- Use libraries if you can
+- Libraries are dependencies
+
+---
+
+## General
+
+- Use elemental functions
+- Use pure functions/subroutines (Fortran)
+- Use intrinsics
+- Beware of multiple loops
+- Do not allocating/deallocate inside multiple loops
+
+---
+
+## Example: profiling performance and memory in Python
+
+- https://gist.github.com/bast/e37ee29036d4f43fee4d
+- https://gist.github.com/bast/1bd41989a975a999d653
+
+---
+
+## Conclusions
+
+- Profile first, optimize later
+- When you scale the system, new bottlenecks will appear

@@ -1,0 +1,257 @@
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Including external projects using Git submodules
+
+## Radovan Bast
+
+Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code examples: [OSI](http://opensource.org)-approved [MIT license](http://opensource.org/licenses/mit-license.html).
+
+---
+
+layout: false
+
+## Motivation
+
+- Sometimes you develop several overlapping projects
+- Hopefully in a modular fashion
+- Example: projects A and B both contain module X
+
+```
+project-A
+* - module-X
+  - module-Y
+  - module-Z
+
+project-B
+  - module-U
+  - module-V
+  - module-W
+* - module-X
+```
+
+- Projects A and B are independent repositories with own histories
+- Typically module X was developed for/within one of them and then transferred to the other
+- Module X can be considered a library
+- **What will happen with both implementations?**
+
+---
+
+## Motivation
+
+- **What will happen with both implementations?**
+- The two implementations of module X risk to diverge
+- Both will receive updates and bugfixes
+- It will be a lot of work to keep them synchronized
+- History shows that manual transferral of updates and bugfixes does not work
+- Better: track the library/module but not the corresponding source code
+- Module X should have own history
+- If there is no source code, it cannot diverge
+- A popular way to achieve this is using Git submodules
+- With Git submodules a Git repository can reference other repositories
+
+---
+
+## Creating a reference to a submodule
+
+```shell
+$ git submodule add https://github.com/foo/module-x.git external/module-x
+
+Cloning into 'external/module-x'...
+remote: Counting objects: 49, done.
+remote: Total 49 (delta 0), reused 0 (delta 0)
+Unpacking objects: 100% (49/49), done.
+```
+
+- This will clone the external project and with `git status` we see
+
+```shell
+$ git status
+
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	new file:   .gitmodules
+#	new file:   external/module-x
+```
+
+- The sources have been cloned from https://github.com/foo/module-x.git and placed into external/module-x
+
+---
+
+## Including external projects using Git submodules
+
+- `.gitmodules` contains the repository address
+
+```shell
+$ cat .gitmodules
+
+[submodule "external/module-x"]
+	path = external/module-x
+	url = https://github.com/foo/module-x.git
+```
+
+- We can commit the external sources
+
+```shell
+$ git commit
+```
+
+---
+
+## Including external projects using Git submodules
+
+- We can browse external/module-x and all sources are there but they are not tracked
+  by the parent project
+- The parent project only tracks the commit hash of the external repository
+- Think of it as a pointer to another repository at a specific state (commit)
+- What if somebody commits a bug to the external repo - will it break your code?
+- No, Git will remember which external commit to reference
+- This reference does not move until you tell Git to move it
+
+---
+
+## Cloning a project with submodules
+
+- A fresh clone which references submodules does not contain the external sources
+- The clone only knows the external repository address and the commit hash
+- With the two following commands we clone the external sources
+
+```shell
+$ git submodule init
+$ git submodule update
+```
+
+- This is then typically part of the build mechanism for the parent project
+
+---
+
+## Uncommitted modifications within submodules
+
+- To see that the parent project does not track actual external sources we make uncommitted modifications inside external/module-x
+- Inside external/module-x they show up as regular uncommitted modifications with respect to the https://github.com/foo/module-x.git repository
+- Outside external/module-x they show up like this:
+
+```shell
+$ git status
+
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#   (commit or discard the untracked or modified content in submodules)
+#
+#	modified:   external/module-x (modified content)
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git diff
+
+diff --git a/external/module-x b/external/module-x
+--- a/external/module-x
++++ b/external/module-x
+@@ -1 +1 @@
+-Subproject commit 432198062d65503819be1ec315d90d94840389b9
++Subproject commit 432198062d65503819be1ec315d90d94840389b9-dirty
+```
+
+---
+
+## Uncommitted modifications within submodules
+
+```shell
+$ git diff
+
+diff --git a/external/module-x b/external/module-x
+--- a/external/module-x
++++ b/external/module-x
+@@ -1 +1 @@
+-Subproject commit 432198062d65503819be1ec315d90d94840389b9
++Subproject commit 432198062d65503819be1ec315d90d94840389b9-dirty
+```
+
+- This means that the parent project references hash 4321980 which is now "dirty" (contains uncommitted modifications)
+
+---
+
+## Updating external sources
+
+- One advantage of Git submodules is that updating external sources is extremely easy
+
+```shell
+$ cd external/module-x
+$ git checkout master       # by default submodules reference a commit not branch
+$ git pull origin master
+$ cd ../..                  # now back to the parent repo
+$ git add external/module-x # register new state
+$ git commit                # commit new state to parent repo
+```
+
+- In the submodule we can reference any branch we like
+- But before updating or modifying submodules we need to switch to a branch
+
+---
+
+## Committing both to external repo and to parent repo
+
+- The nice thing about Git submodules is that you can work on several projects or
+  modules within one parent project
+- We can change things on the parent project side, change things on the external project side,
+  and commit changes to the respective repositories
+- Before you modify external sources switch to the branch that you want to commit to
+- In the initial state external source repositories do not point to any
+  branch (detached HEAD state)
+- Here is a typical workflow:
+
+```shell
+$ cd external/module-x
+$ git checkout master       # by default submodules reference a commit not branch
+$ git pull origin master
+$ vi file.py                # edit some files
+$ git add file.py           # stage modifications
+$ git commit                # commit
+$ git push origin master    # push to master branch of external repo
+$ cd ../..                  # now back to the parent repo
+$ git add external/module-x # register new state
+$ git commit                # commit new state to parent repo
+$ git push origin master    # push to master branch of parent repo
+```
+
+---
+
+## Advantages
+
+- We can develop and test independent but related repositories in one place
+- Good for projects with overlapping modules
+- Good for including libraries that you develop
+- Good for including libraries that other people develop
+- Minimizes risk of diverging code
+- Forces modularization of external sources
+- It is possible to nest submodules
+
+---
+
+## Gotchas
+
+- In the initial state external source repositories do not point to any
+  branch (detached HEAD state)
+- Switching branches in parent repo does not automatically run `git submodule update`
+- If branches reference different commit, you need to `git submodule update`
+- Friendly advice: If you register (commit) a new reference, describe what changed in the submodule
+  (or paste `git log --oneline` summary of commits)
+- If you move the repo that is included as submodule, then older commits of the parent repo may stop compiling
+
+---
+
+## Disadvantages
+
+- If external sources are fetched at compile time, then network is required at compile time
+- If you distribute code that requires Git submodules, then users need read-access to those
+- Adds an extra layer (one Git history referencing other Git history; can confuse developers not
+  used to the Git submodule workflow)
+- Increases complexity in debugging and compilation
+- If a submodule repo moves or disappears, then your past commits may stop working

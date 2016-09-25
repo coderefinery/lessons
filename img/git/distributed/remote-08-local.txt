@@ -1,0 +1,8 @@
+
+                                   [origin/master,_master,_HEAD]
+                                    |
+c1----c2----c3----c4----c5----c6----c7
+        \                             \
+         b1                            d8
+         |                             |
+        [origin/dev]                  [master,HEAD]

@@ -1,0 +1,552 @@
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Branching and merging in Git
+
+## Radovan Bast
+
+Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code examples: [OSI](http://opensource.org)-approved [MIT license](http://opensource.org/licenses/mit-license.html).
+
+---
+
+layout: false
+
+## Branching and merging
+
+```
+[1] --> [2] --> [3] --> [4] --> [5] --> [6] --> [7] --> [8] --> [9] --> ...
+```
+
+- We could continue adding, committing, reverting and happily live ever after
+- This would result in a linear code development
+- However in many situations linear development is neither practical nor efficient
+    - Releases, bugfixes, and patches
+    - Collaborative work (everybody would be exposed to your bugs; you would be exposed to bugs of other people)
+    - We do not have time to write perfect code immediately, it would be nice to have the possibility to experiment somewhere aside
+    - Interrupted work (we typically work on several longer term projects at the same time)
+
+---
+
+## Branches
+
+![](img/git/branches/git-collaborative-work.svg)
+
+- It is a very good practice to use branches
+- **Develop independent features on separate branches**
+- In the following we will learn how to use branches in Git
+- In order to understand how branches work, we should have a closer look at commits
+
+---
+
+## What is a commit
+
+![](img/git/branches/git-collaborative-work.svg)
+
+- Commits are changes
+- Characterized by a 40-character hash (checksum)
+- For simplicity we will use 2 character hashes in this talk
+- They point (arrow) to one or more previous commits (parents)
+- We see branching points and merging points
+- Often we call the main line development `master`
+- Other than this convention there is nothing special about `master`, it is just a branch
+- Commits form a directed acyclic graph
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-01.svg)
+
+- Branches are pointers that point to a commit
+- Branch `master` points to commit `c2`
+- Try this:
+
+```shell
+$ cat .git/refs/heads/master
+```
+
+- It will echo a long hash, for instance this one
+
+```shell
+d8247aa7a003786df7ef0acd3665842d6d57adcd
+```
+
+- That is all there is: branch `master` is simply a pointer to a hash
+- `HEAD` is another pointer, it points to where we are right now (currently `master`)
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-01.svg)
+
+- To see where we are (where HEAD points to) use `git branch`
+
+```shell
+$ git branch
+
+** master
+```
+
+- This command shows where we are, it does not create a branch
+- There is only `master` and we are on `master` (star is `HEAD`)
+- In the following we will learn how to create branches,
+  how to switch between them, how to merge branches,
+  and how to remove them afterwards
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-02.svg)
+
+- Let us create a new branch called `devel`
+
+```shell
+$ git branch devel
+```
+
+- A new pointer appeared
+- But we are still on `master` (`HEAD` did not move)
+
+```shell
+$ git branch
+
+  devel
+** master
+```
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-03.svg)
+
+- With `git checkout` we can switch between branches
+
+```shell
+$ git checkout devel
+```
+
+- We switched to `devel`
+
+```shell
+$ git branch
+
+** devel
+  master
+```
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-04.svg)
+
+- We do some work, make few commits on `devel`
+- As we commit, the branch pointer as well as `HEAD` move
+- `master` does not move
+- Perhaps we committed some bugs, but `master` is not affected
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-05.svg)
+
+- Let us switch back to `master`
+
+```shell
+$ git checkout master
+```
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-06.svg)
+
+- We do some work on `master`, independent of `devel`
+- As we commit, the `master` pointer as well as `HEAD` move
+- `master` is also just a branch
+- We consider it the main development line but it is a pointer, just like `devel`
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-07.svg)
+
+- Having committed some work to `master`, let us switch back to `devel`
+
+```shell
+$ git checkout devel
+```
+
+- Pointer `HEAD` is relocated and points now to `devel`
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-08.svg)
+
+- Imagine that `master` has received some important bugfixes and `devel` needs them
+- Let us merge these commits to `devel`
+
+```shell
+$ git merge master
+```
+
+- We merge `master` into `devel`
+- `git merge master` means: merge commits from `master` to where we are
+- Git automatically creates a merge commit
+  (unless it is a fast-forward merge or unless there is a conflict;
+  we will explain these later)
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-09.svg)
+
+- Let us do more work on `devel` ...
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-10.svg)
+
+- Having committed some work to `devel`, let us switch back to `master`
+
+```shell
+$ git checkout master
+```
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-11.svg)
+
+- Let us do more work on `master` ...
+- Again the pointers move as we commit
+- Consider now that all bugfixes are fixed on `devel` and `devel` is ready to merge to `master`
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-12.svg)
+
+- Merge from `devel` to "here" (`master`)
+
+```shell
+$ git merge devel
+```
+
+- Again a merge commit appears
+
+---
+
+## Working with branches
+
+![](img/git/branches/git-branch-13.svg)
+
+- We can imagine that all the work on `devel` is completed
+- This work has been integrated to `master`
+- We can now delete the branch
+
+```shell
+$ git branch -d devel
+```
+
+- As you see only the pointer disappeared, not the commits
+- Git will not let you delete a branch which has not been reintegrated
+  unless you insist using `git branch -D`
+
+---
+
+## Working with branches
+
+- Let us pause for a moment and recapitulate what we have just learned
+
+```shell
+$ git branch               # see where we are
+$ git branch <name>        # create branch <name>
+$ git checkout <name>      # switch to branch <name>
+$ git merge <name>         # merge branch <name> (to current branch)
+$ git branch -d <name>     # delete branch <name>
+```
+
+- Since the following command combo is so frequent:
+
+```shell
+$ git branch <name>        # create branch <name>
+$ git checkout <name>      # switch to branch <name>
+```
+
+- There is a shortcut for it:
+
+```shell
+$ git checkout -b <name>   # create branch <name> and switch to it
+```
+
+---
+
+## Working with branches
+
+- Branches are the true power of Git
+- Git makes it easy to create branches, and to merge branches back to the main development line
+- **Both is important**
+- In Git branches are ultra lightweight
+- Do not think of branches as copies (as in Subversion)
+- They are just pointers
+- It costs nothing to create new branches
+- Do not fear the branches!
+- Advanced Git users almost never commit to `master` directly
+
+---
+
+## Typical workflows
+
+- With this there are two typical workflows
+
+```shell
+$ git checkout -b new-feature # create branch, switch to it
+$ git commit                  # work, work, work, ...
+                              # test
+                              # feature is ready
+$ git checkout master         # switch to master
+$ git merge new-feature       # merge work to master
+$ git branch -d new-feature   # remove branch
+```
+
+- Sometimes you have a wild idea which does not work
+- Or you want some throw-away branch for debugging
+
+```shell
+$ git checkout -b wild-idea
+                              # work, work, work, ...
+                              # realize it was a bad idea
+$ git checkout master
+$ git branch -D wild-idea     # it is gone, off to a new idea
+                              # -D because we never merged back
+```
+
+- No problem: we worked on a branch, branch is deleted, `master` is clean
+
+---
+
+## Frequent situation: interrupted work
+
+- Your supervisor comes in and wants you to fix/commit something right now
+- You are in the middle of a Jackson-Pollock-style debugging spree with 27 modified files
+  and debugging prints everywhere
+- What to do?
+- What to do with uncommitted code?
+
+---
+
+## What to do with uncommitted code?
+
+- Commit it
+- But sometimes you do not want to, sometimes you want to hide your changes for 5 minutes,
+  do something else, then bring them back and continue
+- You can do this with `git stash`
+
+```shell
+$ git stash        # your modifications are stashed away
+$ git stash pop    # your modifications are back
+```
+
+- It is a stack, you can stash several batches of modifications
+
+```shell
+$ git stash        # stash your debug code away
+$ git commit       # fix something for the boss, commit it
+$ git stash pop    # now you can continue
+```
+
+---
+
+## Going back in time
+
+- We do not have to branch from the tip of the branch (`HEAD`)
+- We can branch from arbitrary (earlier) hash
+
+```shell
+$ git checkout -b <name> <hash>
+```
+
+- This is the recommended mechanism to inspect old code (hash abc123):
+
+```shell
+$ git checkout -b museum abc123 # create branch called "museum" from hash abc123
+                                # do some archaeology ...
+                                # "what was I thinking back then!?"
+$ git checkout master           # after you are done switch back to "master"
+$ git branch -d museum
+```
+
+- Branches help us to keep the repository organized
+
+---
+
+## Fast-forward vs. non-fast-forward merges
+
+- To clarify what is meant by "fast-forward" imagine that you are on `master` and want to merge `devel`
+- What will happen if we `git merge devel`?
+
+![](img/git/branches/pre-ff.svg)
+
+---
+
+## Fast-forward vs. non-fast-forward merges
+
+- If you now type `git merge devel`,
+  Git will recognize that it can simply move the `master` pointer to `b3`
+  without creating a merge commit
+- This is a fast-forward merge
+
+![](img/git/branches/ff.svg)
+
+- The default in Git is to fast-forward merge when possible
+
+---
+
+## Fast-forward vs. non-fast-forward merges
+
+- If you do not like this you can tell Git to merge with no fast-forward
+
+```shell
+$ git merge --no-ff devel
+```
+
+![](img/git/branches/no-ff.svg)
+
+- Both is fine, the resulting code is the same, not the history
+- It is a matter of taste or convention
+
+---
+
+## Rebase vs. merge
+
+- To illustrate rebasing we consider the following situation
+- We want to merge `master`
+
+![](img/git/branches/pre-rebase.svg)
+
+- Now you know how to do it
+
+![](img/git/branches/git-branch-08.svg)
+
+---
+
+## Rebase vs. merge
+
+- But there is an alternative
+
+```shell
+$ git rebase master
+```
+
+![](img/git/branches/rebase.svg)
+
+- `git rebase` replays the branch commits `b1` to `b3` on top of `master`
+- As if they were committed after `c5`
+- It changes history (notice that the commits `b1` to `b3` have been replaced by `b1*` to `b3*`)
+- Discuss advantages and disadvantages
+
+---
+
+## Rebase vs. merge
+
+- `git rebase` makes "merges" producing a linear history
+- When somebody asks you to rebase your work to the work of somebody else you know what this means
+- So far we have not shared commits but we will do so soon
+- When working with others **do not rebase commits that you have shared**
+  (history has changed)
+- Reference: "Treehouse of Horror V: Time and Punishment", The Simpsons (1994)
+
+![](img/git/branches/simpsons.jpg)
+
+---
+
+## My feature branch is ready to merge to master
+
+- Merging a branch incorporates **all** commits of that branch
+- This means that `git log master` then also shows the `b1` to `b3` commits
+- But what if not all commits in the feature branch are presentable (for instance not compiling)
+- We can easily squash them to one commit using `reset --soft` command
+- `git reset --soft` only moves `HEAD` and branch pointer
+- Index and working directory remain without changes
+- So we can commit all the changes in one single commit
+
+![](img/git/branches/git-reset-soft-1.svg)
+
+---
+
+## My feature branch is ready to merge to master
+
+```shell
+$ git checkout master
+$ git merge --no-ff feature
+$ git reset --soft HEAD~1     # we reset to commit one before the merge
+$ git commit                  # one single commit
+```
+
+![](img/git/branches/git-reset-soft-2.svg)
+
+- Discuss alternatives to achieve this
+
+---
+
+## Detached head
+
+- Typically `HEAD` points to a branch
+- But you can make it point directly to a commit
+- This is the detached `HEAD`
+
+```shell
+$ git checkout <hash>  # switch directly to a commit
+```
+
+- You can commit from there but what happens when you switch back to some branch?
+- What happens to the commits?
+
+---
+
+## Lost commits
+
+- You can recover lost commits with `git reflog`
+- `git reflog` keeps a log with references (hashes)
+- Try it, one day you will need it
+
+---
+
+## "Deleted" commits
+
+- `git reset --hard` does not by itself delete commits
+- It only moves the branch pointer back
+- Commits move branch pointers forward, reset moves it back
+- You can recover "deleted" commits with `git reflog`
+- Unless the garbage collector has removed them already (more about it next slide)
+
+---
+
+## Orphaned commits
+
+- Sometimes you want to get rid of orphaned/stale commits
+
+```shell
+$ git gc # run the garbage collector
+```
+
+- But be careful: today's garbage might be tomorrow's gold
+- GitHub runs `git gc` on a periodic basis
