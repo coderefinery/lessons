@@ -1,4 +1,4 @@
-# Links to lesson slides
+# Links to lesson slides (legacy versions)
 
 - [Introduction to version control and Git](http://cicero.xyz/v2/remark/github/coderefinery/lessons/master/git-intro.mkd/)
 - [Branching and merging in Git](http://cicero.xyz/v2/remark/github/coderefinery/lessons/master/git-branches.mkd/)
